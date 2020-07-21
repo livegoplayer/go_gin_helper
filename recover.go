@@ -50,6 +50,19 @@ func NewError(statusCode, Code int, msg string) *Error {
 	}
 }
 
+func NewErrorWithData(statusCode, Code int, data interface{}, msg string) *Error {
+	if data == nil {
+		data = &EmptyData{}
+	}
+
+	return &Error{
+		StatusCode: statusCode,
+		Code:       Code,
+		Msg:        msg,
+		Data:       data,
+	}
+}
+
 // 404处理
 func HandleNotFound(c *gin.Context) {
 	err := NotFound

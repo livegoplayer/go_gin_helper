@@ -94,7 +94,9 @@ func ErrHandler() gin.HandlerFunc {
 				// 记录一个错误的日志
 				c.JSON(Err.StatusCode, Err)
 				//这里打印错误
-				PrintStack(c, Err)
+				if !gin.IsDebugging() {
+					PrintStack(c, Err)
+				}
 				c.Abort()
 				return
 			}

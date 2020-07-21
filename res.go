@@ -28,21 +28,15 @@ func SuccessResp(msg string, data ...interface{}) {
 
 // resp 返回
 func resp(code int, msg string, data ...interface{}) {
-	resp := Resp{
-		Code: code,
-		Msg:  msg,
-		Data: data,
-	}
 
+	var res *Error
 	if len(data) == 1 {
-		resp.Data = data[0]
+		res = NewErrorWithData(200, code, data[0], msg)
 	}
 
 	if len(data) == 0 {
-		resp.Data = &EmptyData{}
+		res = NewErrorWithData(200, code, data[0], msg)
 	}
-	// 设置返回格式是json
-	res := NewErrorWithData(200, code, data, msg)
 
 	panic(res)
 }

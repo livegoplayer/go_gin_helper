@@ -109,7 +109,6 @@ func ErrHandler() gin.HandlerFunc {
 					PrintStack(c, Err)
 				}
 				c.Abort()
-				return
 			}
 		}()
 		c.Next()

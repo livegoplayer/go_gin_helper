@@ -15,7 +15,6 @@ import (
 	"github.com/gin-gonic/gin"
 	. "github.com/livegoplayer/go_helper"
 	mylogger "github.com/livegoplayer/go_logger"
-	"github.com/spf13/viper"
 )
 
 // 错误处理的结构体
@@ -167,7 +166,8 @@ func TimeFormat(t time.Time) string {
 
 //
 ////// 跨域
-func Cors() gin.HandlerFunc {
+
+func Cors(allowedHostList []string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		method := c.Request.Method               //请求方法
 		origin := c.Request.Header.Get("Origin") //请求头部
@@ -183,13 +183,19 @@ func Cors() gin.HandlerFunc {
 		}
 
 		//获取配置文件中的host
-		var accessControlAllowOrigin string
-		host := viper.GetString("host")
-		port := viper.GetString("port")
-		if host == "" || port == "" {
-			accessControlAllowOrigin = "*"
+		accessControlAllowOrigin := "*"
+		//跨域允许的域名
+		for _, host := range allowedHostList {
+			if c.Request.Host == host {
+				accessControlAllowOrigin = "http://" + host
+			}
 		}
-		accessControlAllowOrigin = "http://" + host + port
+
+		AccessControlAllowCredentials := true
+		if accessControlAllowOrigin == "*" {
+			AccessControlAllowCredentials = false
+		}
+
 		if origin != "" {
 			c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 			c.Header("Access-Control-Allow-Origin", accessControlAllowOrigin)                  // 这是允许访问所有域
@@ -200,8 +206,8 @@ func Cors() gin.HandlerFunc {
 			c.Header("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers,Cache-Control,Content-Language,Content-Type,Expires,Last-Modified,Pragma,FooBar") // 跨域关键设置 让浏览器可以解析
 			c.Header("Access-Control-Max-Age", "172800")                                                                                                                                                           // 缓存请求信息 单位为秒
 			//允许设置cookie
-			c.Header("Access-Control-Allow-Credentials", "true") //  跨域请求是否需要带cookie信息 默认设置为true
-			c.Set("content-type", "application/json")            // 设置返回格式是json
+			c.Header("Access-Control-Allow-Credentials", String(AccessControlAllowCredentials)) //  跨域请求是否需要带cookie信息 默认设置为true
+			c.Set("content-type", "application/json")                                           // 设置返回格式是json
 		}
 
 		//放行所有OPTIONS方法

@@ -67,7 +67,6 @@ func NewErrorWithData(statusCode, Code int, data interface{}, msg string) *Error
 func HandleNotFound(c *gin.Context) {
 	err := NotFound
 	c.JSON(err.StatusCode, err)
-	c.Abort()
 	return
 }
 
@@ -75,7 +74,6 @@ func HandleNotFound(c *gin.Context) {
 func HandleServerError(c *gin.Context) {
 	err := ServerError
 	c.JSON(err.StatusCode, err)
-	c.Abort()
 	return
 }
 

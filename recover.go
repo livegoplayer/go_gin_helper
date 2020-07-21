@@ -3,8 +3,14 @@ package helper
 //处理全局panic的返回值，重写gin.Recover中间件的内容
 import (
 	"fmt"
+	"log"
+	"net"
 	"net/http"
+	"net/http/httputil"
+	"os"
+	"runtime"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	. "github.com/livegoplayer/go_helper"
@@ -61,6 +67,7 @@ func HandleServerError(c *gin.Context) {
 }
 
 func ErrHandler() gin.HandlerFunc {
+
 	return func(c *gin.Context) {
 		defer func() {
 			if err := recover(); err != nil {
@@ -86,12 +93,63 @@ func ErrHandler() gin.HandlerFunc {
 				}
 				// 记录一个错误的日志
 				c.JSON(Err.StatusCode, Err)
+				//这里打印错误
+				PrintStack(c, Err)
 				c.Abort()
 				return
 			}
 		}()
 		c.Next()
 	}
+}
+
+// 打印异常栈的方法
+func PrintStack(c *gin.Context, err error) {
+	// Check for a broken connection, as it is not really a
+	// condition that warrants a panic stack trace.
+	var logger *log.Logger
+	logger = log.New(os.Stderr, "\n\n\x1b[31m", log.LstdFlags)
+
+	var brokenPipe bool
+	if ne, ok := err.(*net.OpError); ok {
+		if se, ok := ne.Err.(*os.SyscallError); ok {
+			if strings.Contains(strings.ToLower(se.Error()), "broken pipe") || strings.Contains(strings.ToLower(se.Error()), "connection reset by peer") {
+				brokenPipe = true
+			}
+		}
+	}
+	if logger != nil {
+		var buf []byte
+		runtime.Stack(buf[:], false)
+		stack := buf
+		httpRequest, _ := httputil.DumpRequest(c.Request, false)
+		headers := strings.Split(string(httpRequest), "\r\n")
+		for idx, header := range headers {
+			current := strings.Split(header, ":")
+			if current[0] == "Authorization" {
+				headers[idx] = current[0] + ": *"
+			}
+		}
+		if brokenPipe {
+			logger.Printf("%s\n%s", err, string(httpRequest))
+		} else if gin.IsDebugging() {
+			logger.Printf("[Recovery] %s panic recovered:\n%s\n%s\n%s",
+				TimeFormat(time.Now()), strings.Join(headers, "\r\n"), err, stack)
+		} else {
+			logger.Printf("[Recovery] %s panic recovered:\n%s\n%s",
+				TimeFormat(time.Now()), err, stack)
+		}
+	}
+
+	// If the connection is dead, we can't write a status to it.
+	if brokenPipe {
+		c.Error(err.(error)) // nolint: errcheck
+	}
+}
+
+func TimeFormat(t time.Time) string {
+	var timeString = t.Format("2006/01/02 - 15:04:05")
+	return timeString
 }
 
 //

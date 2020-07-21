@@ -2,8 +2,6 @@ package helper
 
 import (
 	"strings"
-
-	"github.com/gin-gonic/gin"
 )
 
 // Resp 返回
@@ -17,19 +15,19 @@ type EmptyData struct {
 }
 
 // ErrorResp 错误返回值
-func ErrorResp(ctx *gin.Context, code int, msg string, data ...interface{}) {
+func ErrorResp(code int, msg string, data ...interface{}) {
 	//如果isabort 组织输出
-	resp(ctx, code, msg, data...)
+	resp(code, msg, data...)
 }
 
 // SuccessResp 正确返回值
-func SuccessResp(ctx *gin.Context, msg string, data ...interface{}) {
+func SuccessResp(msg string, data ...interface{}) {
 	//如果isabort 组织输出
-	resp(ctx, 0, msg, data...)
+	resp(0, msg, data...)
 }
 
 // resp 返回
-func resp(ctx *gin.Context, code int, msg string, data ...interface{}) {
+func resp(code int, msg string, data ...interface{}) {
 	resp := Resp{
 		Code: code,
 		Msg:  msg,
@@ -44,7 +42,7 @@ func resp(ctx *gin.Context, code int, msg string, data ...interface{}) {
 		resp.Data = &EmptyData{}
 	}
 	// 设置返回格式是json
-	res := NewErrorWithData(200, 1, data, msg)
+	res := NewErrorWithData(200, code, data, msg)
 
 	panic(res)
 }

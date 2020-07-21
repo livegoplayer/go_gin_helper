@@ -9,6 +9,7 @@ import (
 	"net/http/httputil"
 	"os"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -186,8 +187,9 @@ func Cors(allowedHostList []string) gin.HandlerFunc {
 		accessControlAllowOrigin := "*"
 		//跨域允许的域名
 		for _, host := range allowedHostList {
-			if c.Request.Host == host {
-				accessControlAllowOrigin = "http://" + host
+
+			if origin == host {
+				accessControlAllowOrigin = origin
 			}
 		}
 
@@ -206,8 +208,8 @@ func Cors(allowedHostList []string) gin.HandlerFunc {
 			c.Header("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers,Cache-Control,Content-Language,Content-Type,Expires,Last-Modified,Pragma,FooBar") // 跨域关键设置 让浏览器可以解析
 			c.Header("Access-Control-Max-Age", "172800")                                                                                                                                                           // 缓存请求信息 单位为秒
 			//允许设置cookie
-			c.Header("Access-Control-Allow-Credentials", String(AccessControlAllowCredentials)) //  跨域请求是否需要带cookie信息 默认设置为true
-			c.Set("content-type", "application/json")                                           // 设置返回格式是json
+			c.Header("Access-Control-Allow-Credentials", strconv.FormatBool(AccessControlAllowCredentials)) //  跨域请求是否需要带cookie信息 默认设置为true
+			c.Set("content-type", "application/json")                                                       // 设置返回格式是json
 		}
 
 		//放行所有OPTIONS方法

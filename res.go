@@ -35,7 +35,7 @@ func resp(code int, msg string, data ...interface{}) {
 	}
 
 	if len(data) == 0 {
-		res = NewErrorWithData(200, code, data[0], msg)
+		res = NewErrorWithData(200, code, data, msg)
 	}
 
 	panic(res)

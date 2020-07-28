@@ -1,6 +1,7 @@
 package helper
 
 import (
+	"net/http"
 	"strings"
 )
 
@@ -23,7 +24,7 @@ func ErrorResp(code int, msg string, data ...interface{}) {
 // SuccessResp 正确返回值
 func SuccessResp(msg string, data ...interface{}) {
 	//如果isabort 组织输出
-	resp(0, msg, data...)
+	resp(COMMON_STATUS, msg, data...)
 }
 
 // resp 返回
@@ -31,11 +32,11 @@ func resp(code int, msg string, data ...interface{}) {
 
 	var res *Error
 	if len(data) == 1 {
-		res = NewErrorWithData(200, code, data[0], msg)
+		res = NewErrorWithData(http.StatusOK, code, data[0], msg)
 	}
 
 	if len(data) == 0 {
-		res = NewErrorWithData(200, code, EmptyData{}, msg)
+		res = NewErrorWithData(http.StatusOK, code, EmptyData{}, msg)
 	}
 
 	panic(res)
@@ -52,7 +53,14 @@ func CheckError(error error, message ...string) {
 	if error != nil {
 		msg = strings.Join(message, " ")
 		msg = msg + " error:" + error.Error()
-		error = NewError(200, 1, msg)
+		error = NewError(http.StatusOK, COMMON_STATUS, msg)
 		panic(error)
 	}
+}
+
+func AuthResp(msg string, url string) {
+
+	authData := make(map[string]interface{})
+	authData["redirect_url"] = url
+	resp(AUTH_ERROR, msg, authData)
 }

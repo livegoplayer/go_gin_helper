@@ -20,9 +20,10 @@ import (
 )
 
 const (
-	COMMON_ERROR = 1
-	AUTH_ERROR   = 2
-	OTHER_ERROR  = 3
+	COMMON_STATUS = 0
+	COMMON_ERROR  = 1
+	AUTH_ERROR    = 2
+	OTHER_ERROR   = 3
 )
 
 // 错误处理的结构体

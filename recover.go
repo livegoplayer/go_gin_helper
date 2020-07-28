@@ -233,3 +233,10 @@ func Cors(allowedHostList []string) gin.HandlerFunc {
 		c.Next() //  处理请求
 	}
 }
+
+//可以用一个类似handler的东西作为验证逻辑
+func AuthenticationMiddleware(CheckTokenHandler func(c *gin.Context)) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		CheckTokenHandler(c)
+	}
+}

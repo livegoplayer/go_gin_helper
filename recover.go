@@ -9,6 +9,7 @@ import (
 	"net/http/httputil"
 	"os"
 	"runtime"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"time"
@@ -98,16 +99,21 @@ func ErrHandler() gin.HandlerFunc {
 					}
 					//这种程度的error, 输出到数据库
 					mylogger.Error(e.Error())
+					//这里打印错误
+					if gin.IsDebugging() {
+						PrintStack(c, Err)
+					}
 				} else {
 					Err = ServerError
 					mylogger.Error(Err.Error())
+					//这里打印错误
+					if gin.IsDebugging() {
+						PrintStack(c, Err)
+					}
 				}
 				// 记录一个错误的日志
 				c.JSON(Err.StatusCode, Err)
-				//这里打印错误
-				if gin.IsDebugging() {
-					PrintStack(c, Err)
-				}
+
 				c.Abort()
 			}
 		}()
@@ -153,6 +159,7 @@ func PrintStack(c *gin.Context, err error) {
 		}
 	}
 
+	debug.PrintStack()
 	// If the connection is dead, we can't write a status to it.
 	if brokenPipe {
 		c.Error(err.(error)) // nolint: errcheck

@@ -19,6 +19,12 @@ import (
 	mylogger "github.com/livegoplayer/go_logger"
 )
 
+const (
+	COMMON_ERROR = 1
+	AUTH_ERROR   = 2
+	OTHER_ERROR  = 3
+)
+
 // 错误处理的结构体
 type Error struct {
 	//只是说他们两个差不多，没用到
@@ -30,12 +36,12 @@ type Error struct {
 }
 
 var (
-	ServerError = NewError(http.StatusInternalServerError, 1, "系统异常，请稍后重试!")
-	NotFound    = NewError(http.StatusNotFound, 1, http.StatusText(http.StatusNotFound))
+	ServerError = NewError(http.StatusInternalServerError, COMMON_ERROR, "系统异常，请稍后重试!")
+	NotFound    = NewError(http.StatusNotFound, COMMON_ERROR, http.StatusText(http.StatusNotFound))
 )
 
 func OtherError(message string) *Error {
-	return NewError(http.StatusForbidden, 100403, message)
+	return NewError(http.StatusForbidden, COMMON_ERROR, message)
 }
 
 func (e *Error) Error() string {

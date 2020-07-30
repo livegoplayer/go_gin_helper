@@ -53,7 +53,7 @@ func CheckError(error error, message ...string) {
 	if error != nil {
 		msg = strings.Join(message, " ")
 		msg = msg + " error:" + error.Error()
-		error = NewError(http.StatusOK, COMMON_STATUS, msg)
+		error = NewError(http.StatusOK, COMMON_ERROR, msg)
 		panic(error)
 	}
 }

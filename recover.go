@@ -238,5 +238,7 @@ func Cors(allowedHostList []string) gin.HandlerFunc {
 func AuthenticationMiddleware(CheckTokenHandler func(c *gin.Context)) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		CheckTokenHandler(c)
+
+		c.Next()
 	}
 }

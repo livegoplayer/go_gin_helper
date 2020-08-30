@@ -42,7 +42,7 @@ var (
 )
 
 func OtherError(message string) *Error {
-	return NewError(http.StatusForbidden, COMMON_ERROR, message)
+	return NewError(http.StatusOK, COMMON_ERROR, message)
 }
 
 func (e *Error) Error() string {
@@ -91,33 +91,29 @@ func ErrHandler() gin.HandlerFunc {
 		defer func() {
 			if err := recover(); err != nil {
 				var Err *Error
+				var realErr error
 				//如果是通过本文件定义的Error，如果是调试模式，则输出所有的错误内容，否则，只输出自定义内容
 				if e, ok := err.(*Error); ok {
 					Err = e
-					if !gin.IsDebugging() {
-						msg := GetSubStringBetween(Err.Msg, " error:", "")
-						Err.Msg = msg
-					}
+					msg := GetSubStringBetween(Err.Msg, " error:", "")
+					Err.Msg = msg
 				} else if e, ok := err.(error); ok {
-					if !gin.IsDebugging() {
-						Err = ServerError
-					} else {
-						Err = OtherError(e.Error())
-					}
-					//这种程度的error, 输出到数据库
-					mylogger.Error(e.Error())
-					//这里打印错误
-					if gin.IsDebugging() {
-						PrintStack(c, Err)
-					}
-				} else {
 					Err = ServerError
-					mylogger.Error(Err.Error())
-					//这里打印错误
-					if gin.IsDebugging() {
-						PrintStack(c, Err)
-					}
+					realErr = OtherError(e.Error())
+				} else {
+					//普通panic,直接传string的那种
+					Err = ServerError
+					realErr = OtherError(err.(string))
 				}
+
+				//测试环境非服务器返回的错误打印下来
+				if gin.IsDebugging() && realErr != nil {
+					//这种程度的error, 输出到数据库
+					mylogger.Error(realErr.Error())
+					//这里打印错误
+					PrintStack(c, Err)
+				}
+
 				// 记录一个错误的日志
 				c.JSON(Err.StatusCode, Err)
 

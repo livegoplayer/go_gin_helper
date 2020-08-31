@@ -16,7 +16,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	. "github.com/livegoplayer/go_helper"
-	mylogger "github.com/livegoplayer/go_logger"
+	mylogger "github.com/livegoplayer/go_logger/logger"
 )
 
 const (

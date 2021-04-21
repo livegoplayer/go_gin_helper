@@ -10,8 +10,8 @@ import (
 // Parse 用于解析公共参数中间件
 func ParseParams(params interface{}) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		typ := reflect.TypeOf(&params).Elem()
-		val := reflect.ValueOf(&params).Elem()
+		typ := reflect.TypeOf(params).Elem()
+		val := reflect.ValueOf(params).Elem()
 
 		for i := 0; i < typ.NumField(); i++ {
 			typeField := typ.Field(i)

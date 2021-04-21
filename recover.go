@@ -3,12 +3,8 @@ package helper
 //处理全局panic的返回值，重写gin.Recover中间件的内容
 import (
 	"fmt"
-	"log"
-	"net"
 	"net/http"
-	"net/http/httputil"
 	"os"
-	"runtime"
 	"runtime/debug"
 	"strconv"
 	"strings"
@@ -94,8 +90,6 @@ func ErrHandler() gin.HandlerFunc {
 				//如果是通过本文件定义的Error，如果是调试模式，则输出所有的错误内容，否则，只输出自定义内容
 				if e, ok := err.(*Error); ok {
 					Err = e
-					msg := GetSubStringBetween(Err.Msg, " error:", "")
-					Err.Msg = msg
 				} else if e, ok := err.(error); ok {
 					Err = ServerError
 					realErr = OtherError(e.Error())
@@ -106,14 +100,15 @@ func ErrHandler() gin.HandlerFunc {
 				}
 
 				//测试环境非服务器返回的错误打印下来
-				if gin.IsDebugging() && realErr != nil {
-					//这种程度的error, 输出到数据库
+				if realErr != nil {
+					//这种程度的error, 输出
 					mylogger.Error(realErr.Error())
-					//这里打印错误
-					PrintStack(c, Err)
+					if gin.IsDebugging() {
+						//这里打印错误
+						PrintStack(Err)
+					}
 				}
 
-				// 记录一个错误的日志
 				c.JSON(Err.StatusCode, Err)
 
 				c.Abort()
@@ -124,48 +119,10 @@ func ErrHandler() gin.HandlerFunc {
 }
 
 // 打印异常栈的方法
-func PrintStack(c *gin.Context, err error) {
-	// Check for a broken connection, as it is not really a
-	// condition that warrants a panic stack trace.
-	var logger *log.Logger
-	logger = log.New(os.Stderr, "\n\n\x1b[31m", log.LstdFlags)
-
-	var brokenPipe bool
-	if ne, ok := err.(*net.OpError); ok {
-		if se, ok := ne.Err.(*os.SyscallError); ok {
-			if strings.Contains(strings.ToLower(se.Error()), "broken pipe") || strings.Contains(strings.ToLower(se.Error()), "connection reset by peer") {
-				brokenPipe = true
-			}
-		}
-	}
-	if logger != nil {
-		var buf []byte
-		runtime.Stack(buf[:], false)
-		stack := buf
-		httpRequest, _ := httputil.DumpRequest(c.Request, false)
-		headers := strings.Split(string(httpRequest), "\r\n")
-		for idx, header := range headers {
-			current := strings.Split(header, ":")
-			if current[0] == "Authorization" {
-				headers[idx] = current[0] + ": *"
-			}
-		}
-		if brokenPipe {
-			logger.Printf("%s\n%s", err, string(httpRequest))
-		} else if gin.IsDebugging() {
-			logger.Printf("[Recovery] %s panic recovered:\n%s\n%s\n%s",
-				TimeFormat(time.Now()), strings.Join(headers, "\r\n"), err, stack)
-		} else {
-			logger.Printf("[Recovery] %s panic recovered:\n%s\n%s",
-				TimeFormat(time.Now()), err, stack)
-		}
-	}
-
+func PrintStack(err error) {
+	msg := err.Error()
+	_, _ = os.Stderr.Write([]byte("error: " + msg + "\n"))
 	debug.PrintStack()
-	// If the connection is dead, we can't write a status to it.
-	if brokenPipe {
-		c.Error(err.(error)) // nolint: errcheck
-	}
 }
 
 func TimeFormat(t time.Time) string {

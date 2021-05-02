@@ -39,6 +39,10 @@ func resp(code int, msg string, data ...interface{}) {
 		res = NewErrorWithData(http.StatusOK, code, EmptyData{}, msg)
 	}
 
+	if len(data) > 1 {
+		res = NewErrorWithData(http.StatusOK, code, data, msg)
+	}
+
 	panic(res)
 }
 

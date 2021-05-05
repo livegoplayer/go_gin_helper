@@ -13,6 +13,9 @@ func ParseParams(params interface{}) gin.HandlerFunc {
 		typ := reflect.TypeOf(params).Elem()
 		val := reflect.ValueOf(params).Elem()
 
+		json := make(map[string]interface{})
+		c.BindJSON(&json)
+
 		for i := 0; i < typ.NumField(); i++ {
 			typeField := typ.Field(i)
 
@@ -26,7 +29,7 @@ func ParseParams(params interface{}) gin.HandlerFunc {
 
 			keys := strings.Split(inputFieldName, ",")
 			for _, key := range keys {
-				v := pickValue(key, c)
+				v := pickValue(key, c, json)
 				if v != "" {
 					if val.Field(i).Kind() == reflect.Int64 {
 						intVal, _ := strconv.ParseInt(v, 10, 64)
@@ -48,10 +51,17 @@ func ParseParams(params interface{}) gin.HandlerFunc {
 	}
 }
 
-func pickValue(key string, c *gin.Context) string {
+func pickValue(key string, c *gin.Context, json map[string]interface{}) string {
 	v := c.Query(key)
 	if v != "" {
 		return v
+	}
+
+	if pv, ok := json[key]; ok {
+		res := AsString(pv)
+		if res != "" {
+			return res
+		}
 	}
 
 	pv := c.PostForm(key)

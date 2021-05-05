@@ -1,6 +1,11 @@
 package helper
 
-import "strings"
+import (
+	"fmt"
+	jsoniter "github.com/json-iterator/go"
+	"strconv"
+	"strings"
+)
 
 //获取source的子串,如果start小于0或者end大于source长度则返回""
 //start:开始index，从0开始，包括0
@@ -33,4 +38,44 @@ func GetSubStringBetween(source string, startString string, endString string) st
 		return source
 	}
 	return Substring(source, 0, strings.Index(source, endString))
+}
+
+func AsString(v interface{}) string {
+	switch v.(type) {
+	case uint32:
+		return strconv.FormatInt(int64(v.(uint32)), 10)
+	case uint64:
+		return strconv.FormatInt(int64(v.(uint64)), 10)
+	case int:
+		return strconv.Itoa(v.(int))
+	case int32:
+		return strconv.Itoa(int(v.(int32)))
+	case int64:
+		return strconv.FormatInt(v.(int64), 10)
+	case float64:
+		return strconv.FormatFloat(v.(float64), 'E', -1, 64)
+	case float32:
+		return strconv.FormatFloat(float64(v.(float32)), 'E', -1, 64)
+	case string:
+		return v.(string)
+	case bool:
+		if v.(bool) {
+			return "true"
+		} else {
+			return "false"
+		}
+	case map[string]interface{}:
+		return JsonEncode(v)
+	default:
+		return ""
+	}
+}
+
+func JsonEncode(data interface{}) string {
+	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+	jsonByte, err := json.Marshal(&data)
+	if err != nil {
+		fmt.Printf("json加密出错:" + err.Error())
+	}
+	return string(jsonByte[:])
 }

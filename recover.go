@@ -105,7 +105,7 @@ func ErrHandler() gin.HandlerFunc {
 					mylogger.Error(realErr.Error())
 					if gin.IsDebugging() {
 						//这里打印错误
-						PrintStack(Err)
+						PrintStack(realErr)
 					}
 				}
 
@@ -186,7 +186,7 @@ func Cors(allowedHostList []string) gin.HandlerFunc {
 	}
 }
 
-//可以用一个类似handler的东西作为验证逻辑
+// 可以用一个类似handler的东西作为验证逻辑
 func AuthenticationMiddleware(CheckTokenHandler func(c *gin.Context)) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		CheckTokenHandler(c)
